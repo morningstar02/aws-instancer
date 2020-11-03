@@ -31,6 +31,11 @@ async function authenticate({ username, password }) {
 function createec2(ec2Data) {
     let arn = ec2Data.arn;
     let regionParam = ec2Data.region;
+    let KeyName = ec2Data.keyName;
+    let instanceType = ec2Data.instanceType;
+    let amiId = ec2Data.amiId;
+    let externalId = ec2Data.externalId;
+    let instanceName = ec2Data.name;
     return new Promise(function(resolve, reject){ //Or Q.defer() in Q
         var AWS = require('aws-sdk');
         var sts = new AWS.STS({apiVersion: '2011-06-15'});
@@ -39,7 +44,7 @@ function createec2(ec2Data) {
         console.log(arn);
         var params = {
             DurationSeconds: 3600,
-            ExternalId: 'react-node',
+            ExternalId: externalId,
             RoleArn: arn,
             RoleSessionName: 'reactNode'
            };
@@ -59,17 +64,19 @@ function createec2(ec2Data) {
                                 region : regionParam,
                                 credentials : creds
                 };
-                let imageId = 'ami-0e306788ff2473ccb';
-                if(regionParam == 'ap-south-1') {
-                    console.log(imageId);
-                } else {
-                    imageId = 'ami-0947d2ba12ee1ff75';
-                    console.log(imageId);
-                }
+                // let imageId = 'ami-0e306788ff2473ccb';
+                // if(regionParam == 'ap-south-1') {
+                //     console.log(imageId);
+                // } else if (regionParam == 'us-east-1'){
+                //     imageId = 'ami-0947d2ba12ee1ff75';
+                //     console.log(imageId);
+                // } else {
+                //     console.log(imageId);
+                // }
                 var instanceParams = {
-                    ImageId: imageId, 
-                    InstanceType: 't2.micro',
-                    KeyName: 'react-node',
+                    ImageId: amiId, 
+                    InstanceType: instanceType,
+                    KeyName: KeyName,
                     MinCount: 1,
                     MaxCount: 1
                 };
@@ -86,7 +93,7 @@ function createec2(ec2Data) {
                         tagParams = {Resources: [instanceId], Tags: [
                             {
                                 Key: 'Name',
-                                Value: 'Sample Instance'
+                                Value: instanceName
                             }
                         ]};
                         // Create a promise on an EC2 service object
@@ -116,6 +123,8 @@ function createec2(ec2Data) {
 function listInstances(listData) {
     let arn = listData.arn;
     let regionParam = listData.region;
+    let instanceType = listData.instanceType;
+    let externalId = listData.externalId;
     return new Promise(function(resolve, reject){ //Or Q.defer() in Q
         console.log('%%%%%%%%%%%')
         var AWS = require('aws-sdk');
@@ -125,14 +134,14 @@ function listInstances(listData) {
         console.log(arn);
         var params = {
             DurationSeconds: 3600,
-            ExternalId: 'react-node',
+            ExternalId: externalId,
             RoleArn: arn,
             RoleSessionName: 'reactNode'
            };
            sts.assumeRole(params, async function(err, data) {
             if(err){
-                console.log('>>>>>>>> error in assume role');
-                return {error: true}
+                console.log('>>>>>>>> error in assume role', err);
+                reject(err);
             }else{
                 console.log('credentials obtained********');
                 creds = new AWS.Credentials({
@@ -151,7 +160,7 @@ function listInstances(listData) {
                        {
                       Name: "instance-type", 
                       Values: [
-                         "t2.micro"
+                        instanceType
                       ]
                      }
                     ]
@@ -172,6 +181,7 @@ function runSSMCommand(cmdData) {
     let arn = cmdData.arn;
     let regionParam = cmdData.region;
     let instanceId = cmdData.instanceId;
+    let externalId = cmdData.externalId;
     let command = cmdData.command;
     return new Promise(function(resolve, reject){ //Or Q.defer() in Q
 
@@ -185,7 +195,7 @@ function runSSMCommand(cmdData) {
         console.log(arn);
         var params = {
             DurationSeconds: 3600,
-            ExternalId: 'react-node',
+            ExternalId: externalId,
             RoleArn: arn,
             RoleSessionName: 'reactNode'
            };
