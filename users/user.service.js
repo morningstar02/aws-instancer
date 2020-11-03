@@ -191,8 +191,8 @@ function runSSMCommand(cmdData) {
            };
            sts.assumeRole(params, async function(err, data) {
             if(err){
-                console.log('>>>>>>>> error in assume role');
-                return {error: true}
+                console.log('>>>>>>>> error in assume role', err);
+                reject(err)
             }else{
                 console.log('credentials obtained********');
                 creds = new AWS.Credentials({
