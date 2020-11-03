@@ -237,6 +237,7 @@ function runSSMCommand(cmdData) {
                             reject(err)
                         } else {
                             console.log('%%%%%%%', data1);
+                            resolve(data1);
                         //     if(req.body.script=="clear"){
                         //         data1.StandardOutputContent="";
                         //    }
