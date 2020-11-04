@@ -8,18 +8,24 @@ const errorHandler = require('_helpers/error-handler');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(cors({
-    "origin": "*",
-    "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
-    "preflightContinue": false,
-    "optionsSuccessStatus": 204
-  }));
+app.use(cors());
 
 // use JWT auth to secure the api
 app.use(jwt());
 
+var allowlist = ['http://localhost:4200/', 'https://instancer.netlify.app/', '*']
+var corsOptionsDelegate = function (req, callback) {
+  var corsOptions;
+  if (allowlist.indexOf(req.header('Origin')) !== -1) {
+    corsOptions = { origin: true } // reflect (enable) the requested origin in the CORS response
+  } else {
+    corsOptions = { origin: false } // disable CORS for this request
+  }
+  callback(null, corsOptions) // callback expects two parameters: error and options
+}
+
 // api routes
-app.use('/users', require('./users/users.controller'));
+app.use('/users', cors(corsOptionsDelegate), require('./users/users.controller'));
 
 // global error handler
 app.use(errorHandler);
